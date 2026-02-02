@@ -33,7 +33,8 @@
   },
   "TEMPVC": {
     "TEMPVC_CHANNEL_ID": null,
-    "TEMPVC_CATEGORY_ID": null
+    "TEMPVC_CATEGORY_ID": null,
+    "TEMPVC_BASE_NAME": "/tmp/"
   },
   "GIF_LIMITER": {
     "RECENT_GIF_AGE": 60,

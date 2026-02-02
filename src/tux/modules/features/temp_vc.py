@@ -26,7 +26,7 @@ class TempVc(BaseCog):
             The bot instance to attach this service to.
         """
         super().__init__(bot)
-        self.base_vc_name: str = "/tmp/"
+        self.base_vc_name: str = CONFIG.TEMPVC.TEMPVC_BASE_NAME
 
     @commands.Cog.listener()
     async def on_voice_state_update(

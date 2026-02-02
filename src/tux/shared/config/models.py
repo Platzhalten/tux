@@ -181,6 +181,15 @@ class TempVC(BaseModel):
         ),
     ]
 
+    TEMPVC_BASE_NAME: Annotated[
+        str,
+        Field(
+            default="/tmp/",
+            description="The Base name in the beginning of a TempVC.",
+            examples=["/tmp/"],
+        ),
+    ]
+
     @field_validator("TEMPVC_CHANNEL_ID", "TEMPVC_CATEGORY_ID", mode="before")
     @classmethod
     def _coerce_tempvc_id(cls, v: Any) -> int | None:
