@@ -24,6 +24,7 @@ from .models import (
     Snippet,
     Starboard,
     StarboardMessage,
+    TemporaryVoiceChannel,
 )
 
 __all__ = [
@@ -51,4 +52,6 @@ __all__ = [
     # Starboard system
     "Starboard",
     "StarboardMessage",
+    # TempVC system
+    "TemporaryVoiceChannel",
 ]

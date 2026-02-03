@@ -1275,3 +1275,51 @@ class StarboardMessage(BaseModel, table=True):
     def __repr__(self) -> str:
         """Return string representation showing guild, original message and user."""
         return f"<StarboardMessage id={self.id} guild={self.message_guild_id} user={self.message_user_id} channel={self.message_channel_id}>"
+
+
+class TemporaryVoiceChannel(BaseModel, table=True):
+    """Temporary Voice Channel data.
+
+    Tracks what TempVC are active and who the owner is.
+
+    Attributes
+    ----------
+    guild_id : int
+        Guild ID (primary key, foreign key to guild table).
+    voice_channel_id : int
+        Voice Channel ID (primary key).
+    owner_id : int
+        ID of the Owner.
+    owner_left_time : datetime
+        When the owner left the channel.
+    """
+
+    guild_id: int = Field(
+        primary_key=True,
+        foreign_key="guild.id",
+        ondelete="CASCADE",
+        sa_type=BigInteger,
+        description="Discord guild ID",
+    )
+
+    voice_channel_id: int = Field(
+        primary_key=True,
+        sa_type=BigInteger,
+        description="Channel ID of the voice channel.",
+    )
+
+    owner_id: int = Field(
+        sa_type=BigInteger,
+        description="Discord user ID from the owner",
+    )
+
+    owner_left_time: datetime | None = Field(
+        default=None,
+        description="The time when the Owner left the Voice Channel for claiming reasons.",
+    )
+
+    # TODO: Table Args?
+
+    def __repr__(self) -> str:
+        """Return string representation showing guild and Voice channel."""
+        return f"<Starboard guild={self.guild_id} channel={self.voice_channel_id}>"

@@ -29,6 +29,7 @@ __all__ = [
     "SnippetController",
     "StarboardController",
     "StarboardMessageController",
+    "TemporaryVoiceChannelController",
 ]
 
 from tux.database.controllers.afk import AfkController
@@ -49,6 +50,9 @@ from tux.database.controllers.snippet import SnippetController
 from tux.database.controllers.starboard import (
     StarboardController,
     StarboardMessageController,
+)
+from tux.database.controllers.temporary_voice_channel import (
+    TemporaryVoiceChannelController,
 )
 
 
@@ -112,6 +116,7 @@ class DatabaseCoordinator:
         self._case: CaseController | None = None
         self._starboard: StarboardController | None = None
         self._starboard_message: StarboardMessageController | None = None
+        self._temporary_voice_channel: TemporaryVoiceChannelController | None = None
         self._reminder: ReminderController | None = None
 
     @property
@@ -179,6 +184,13 @@ class DatabaseCoordinator:
         if self._reminder is None:
             self._reminder = ReminderController(self.db)
         return self._reminder
+
+    @property
+    def temp_vc(self) -> TemporaryVoiceChannelController:
+        """Get the reminder controller."""
+        if self._temporary_voice_channel is None:
+            self._temporary_voice_channel = TemporaryVoiceChannelController(self.db)
+        return self._temporary_voice_channel
 
     @property
     def permission_ranks(self) -> PermissionRankController:

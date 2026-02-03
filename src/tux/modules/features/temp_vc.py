@@ -71,6 +71,7 @@ class TempVc(BaseCog):
                 after.channel,
                 temp_channel_id,
                 temp_category_id,
+                member,
             )
 
     async def _handle_user_join(
@@ -88,15 +89,33 @@ class TempVc(BaseCog):
         channel : discord.VoiceChannel
             The channel that the member joined.
         """
-        for voice_channel in channel.guild.voice_channels:
-            # Check if the channel is a temporary channel and if it is the user's channel
-            if voice_channel.name == self.base_vc_name + member.name:
-                await member.move_to(voice_channel)
-                return
+        search_for_user_channel = (
+            await self.db.temp_vc.get_temporary_voice_channel_by_owner_id(member.id)
+        )
+
+        if search_for_user_channel is not None:
+            await self.db.temp_vc.handle_owner_left_time(
+                guild_id=channel.guild.id,
+                channel_id=search_for_user_channel.voice_channel_id,
+                owner_left=False,
+            )
+
+            for voice_channel in channel.guild.voice_channels:
+                if voice_channel.id == search_for_user_channel.voice_channel_id:
+                    await member.move_to(voice_channel)
+                    # TODO: the only way i could get the type checker to stop complaining
+
+            return
 
         # Create a new channel for the user if it doesn't exist
         new_channel = await channel.clone(name=self.base_vc_name + member.name)
         await member.move_to(new_channel)
+
+        await self.db.temp_vc.get_or_create_temporary_voice_channel(
+            guild_id=new_channel.guild.id,
+            voice_channel_id=new_channel.id,
+            owner_id=member.id,
+        )
 
     async def _handle_user_leave(
         self,
@@ -104,6 +123,7 @@ class TempVc(BaseCog):
         after_channel: discord.VoiceChannel | discord.StageChannel | None,
         temp_channel_id: int,
         temp_category_id: int,
+        member: discord.Member,
     ) -> None:
         """
         Handle the case when a user leaves a voice channel. Deletes empty temporary channels.
@@ -118,6 +138,8 @@ class TempVc(BaseCog):
             The ID of the temporary voice channel the bot manages.
         temp_category_id: int
             The ID of the category holding temporary voice channels.
+        member: discord.Member
+            The member who left the channel.
         """
         # Get the category of the temporary channels
         category = discord.utils.get(
@@ -135,9 +157,26 @@ class TempVc(BaseCog):
         ):
             return
 
+        voice_channel = await self.db.temp_vc.get_temporary_voice_channel_by_id(
+            guild_id=before_channel.guild.id,
+            channel_id=before_channel.id,
+        )
+
         # Delete the channel if it is empty
         if not before_channel.members:
+            await self.db.temp_vc.delete_temporary_voice_channel(
+                guild_id=before_channel.guild.id,
+                channel_id=before_channel.id,
+            )
             await before_channel.delete()
+
+        elif voice_channel is not None:
+            if voice_channel.owner_id == member.id:
+                await self.db.temp_vc.handle_owner_left_time(
+                    guild_id=before_channel.guild.id,
+                    channel_id=before_channel.id,
+                    owner_left=True,
+                )
 
         # Search and delete all empty temporary channels
         for channel in category.voice_channels:
@@ -148,6 +187,10 @@ class TempVc(BaseCog):
             ):
                 continue
 
+            await self.db.temp_vc.delete_temporary_voice_channel(
+                guild_id=before_channel.guild.id,
+                channel_id=before_channel.id,
+            )
             await channel.delete()
 
 
