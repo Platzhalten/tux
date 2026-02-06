@@ -82,6 +82,9 @@ class Levels(BaseCog):
 
         member : discord.Member
             The member to set the level for.
+
+        new_level : int
+            The new level to set.
         """
         assert ctx.guild
 
